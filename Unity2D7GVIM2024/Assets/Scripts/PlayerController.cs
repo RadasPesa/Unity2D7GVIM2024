@@ -14,6 +14,8 @@ public class PlayerController : MonoBehaviour
     private Rigidbody2D rb;
     [SerializeField]
     private float playerSpeed;
+    [SerializeField]
+    private Animator animator;
 
     void Awake()
     {
@@ -28,6 +30,9 @@ public class PlayerController : MonoBehaviour
     void Update()
     {
         moveDirection = movementAction.ReadValue<Vector2>();
+        animator.SetFloat("Horizontal", moveDirection.x);
+        animator.SetFloat("Vertical", moveDirection.y);
+        animator.SetFloat("Speed", moveDirection.sqrMagnitude);
     }
 
     void FixedUpdate()
