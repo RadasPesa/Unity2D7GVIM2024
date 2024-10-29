@@ -17,6 +17,8 @@ public class PlayerController : MonoBehaviour
     [SerializeField]
     private Animator animator;
 
+    private PlayerState playerState;
+
     void Awake()
     {
         inputManager = InputManager.instance;
@@ -25,14 +27,20 @@ public class PlayerController : MonoBehaviour
         movementAction = playerInput.actions["Movement"];
         movementAction.performed += Move;
         rb = GetComponent<Rigidbody2D>();
+        
+        playerState = PlayerState.Move;
     }
 
     void Update()
     {
-        moveDirection = movementAction.ReadValue<Vector2>();
-        animator.SetFloat("Horizontal", moveDirection.x);
-        animator.SetFloat("Vertical", moveDirection.y);
-        animator.SetFloat("Speed", moveDirection.sqrMagnitude);
+        moveDirection = Vector2.zero;
+        if (playerState == PlayerState.Move)
+        {
+            moveDirection = movementAction.ReadValue<Vector2>();
+            animator.SetFloat("Horizontal", moveDirection.x);
+            animator.SetFloat("Vertical", moveDirection.y);
+            animator.SetFloat("Speed", moveDirection.sqrMagnitude);
+        }
     }
 
     void FixedUpdate()
@@ -42,8 +50,32 @@ public class PlayerController : MonoBehaviour
 
     public void Move(InputAction.CallbackContext ctx)
     {
-        Debug.Log("Movement: " + ctx.phase);
     }
-    
-    
+
+    public void Attack(InputAction.CallbackContext ctx)
+    {
+        if (!ctx.performed) return;
+
+        StartCoroutine(AttackCo());
+    }
+
+    private IEnumerator AttackCo()
+    {
+        animator.SetBool("Attacking", true);
+        playerState = PlayerState.Attack;
+        yield return null;
+        animator.SetBool("Attacking", false);
+        while (animator.GetCurrentAnimatorStateInfo(0).IsName("PlayerAttackDown"))
+        {
+            yield return null;
+        }
+        playerState = PlayerState.Move;
+    }
+}
+
+public enum PlayerState
+{
+    Move,
+    Attack,
+    Interact
 }
